@@ -1,9 +1,11 @@
 module.exports = {
-  port: 3000,
+  port: 443,
   dbURL: 'mongodb://localhost:27017',
-  dbOptions: { useMongoClient: true },
+  dbOptions: {
+    useUnifiedTopology: true
+  },
   ssl: {
-      keyPath: '../some.pem',
-      keyPath: '../some.cert',
+      keyPath: './proxy_server.key',
+      certPath: './proxy_server.crt',
   }
 };

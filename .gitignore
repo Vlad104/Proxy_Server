@@ -1,6 +1,8 @@
 package-lock.json
 *.key
-*.cert
+*.crt
 *.pem
+*.csr
+*.srl
 
 /node_modules/
