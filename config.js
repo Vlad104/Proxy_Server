@@ -1,11 +1,12 @@
 module.exports = {
-  port: 80,
+  portHttp: 80,
+  portHttps: 443,
   dbURL: 'mongodb://localhost:27017',
   dbOptions: {
     useUnifiedTopology: true
   },
   ssl: {
-      keyPath: './proxy_server.key',
-      certPath: './proxy_server.crt',
+      keyPath: './ssl/rootCA.key',
+      certPath: './ssl/rootCA.crt',
   }
 };

@@ -1,6 +1,8 @@
 const request = require('request');
 const ReqHistory = require('./history');
 const openssl = require('openssl-nodejs');
+const config = require("./config");
+const fs = require('fs');
 
 function save(req) {
     const newReqHistory = new ReqHistory({
@@ -25,32 +27,38 @@ function extract(req) {
 }
 
 const pass = function(req, res) {
+    console.log('coonection');
     if (req.headers.host === 'localhost' && req.query.id) {
         proxyResend(req, res);
         return;
     }
 
     const data = extract(req);
-    save(data);
+    // save(data);
     
-    const target = 'http://localhost:3001';
-    // const target = `${req.protocol}'://'${req.headers.host}${req.originalUrl}`;
+    // const target = 'http://localhost:3001';
+    const target = `${req.protocol}://${req.headers.host}${req.originalUrl}`;
+    console.log('to: ', target);
     sendToTarget(req, res, target);
 }
 
 function sendToTarget(req, res, target) {
-    const options = {
-        url: target,
-        headers: req.headers,
-    };
-
-    if (req.method === 'GET') {
-        request.get(options).pipe(res);
-    } else if (req.method === 'POST') {
-        request.post(options, req.body).pipe(res);
-    } else if (req.method === 'PUT') {
-        request.put(options, req.body).pipe(res);
-    }
+    // generateCertificate(req.headers.host, () => {
+        const options = {
+            url: target,
+            headers: req.headers,
+            // key: fs.readFileSync(`./ssl/${req.headers.host}.key`),
+            // cert: fs.readFileSync(`./ssl/${req.headers.host}.crt`),
+        };
+    
+        if (req.method === 'GET') {
+            request.get(options).pipe(res);
+        } else if (req.method === 'POST') {
+            request.post(options, req.body).pipe(res);
+        } else if (req.method === 'PUT') {
+            request.put(options, req.body).pipe(res);
+        }
+    // });
 }
 
 function proxyResend(req, res) {
@@ -91,11 +99,21 @@ function resend(id, res) {
 }
 
 const connect = function(req, res, next) {
-    console.log('connect');
-    openssl('openssl req -new -sha256 -key proxy_server.key -subj "/C=RF/ST=M/O=Vlad/CN=proxy_server" -out localhost.csr');
-    openssl('openssl x509 -req -in localhost.csr -CA rootCA.crt -CAkey rootCA.key -CAcreateserial -out localhost.crt -days 500 -sha256');
+    console.log('NEW SSL');
+    generateCertificate(req.host, () => {
+        next();
+    });
+}
 
-    next();
+function generateCertificate(domain, callback) {
+    // eeee callback-hell
+    openssl(`openssl genrsa -out ./ssl/${domain}.key 2048`, () => {
+        openssl(`openssl req -new -sha256 -key ${domain}.key -subj "/C=RF/ST=M/O=Vlad/CN=Vlad" -out ./ssl/${domain}.csr`, () => {
+            openssl(`openssl x509 -req -in ./ssl/${domain}.csr -CA ./ssl/rootCA.crt -CAkey ./ssl/rootCA.key -CAcreateserial -out ./ssl/${domain}.crt -days 500 -sha256`, () => {
+                callback();
+            });
+        });
+    });
 }
 
 module.exports = {
