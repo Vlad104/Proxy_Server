@@ -37,7 +37,8 @@ const pass = function(req, res) {
     // save(data);
     
     // const target = 'http://localhost:3001';
-    const target = `${req.protocol}://${req.headers.host}${req.originalUrl}`;
+    // const target = `${req.protocol}://${req.headers.host}${req.originalUrl}`;
+    const target = `${req.protocol}://${req.headers.host}${req.path}`;
     console.log('to: ', target);
     sendToTarget(req, res, target);
 }
@@ -93,7 +94,7 @@ function resend(id, res) {
             res.sendStatus(404);
             return;
         } 
-        
+
         sendToTarget(req.request, res, target);
     });
 }

@@ -14,15 +14,16 @@ const options = {
   rejectUnauthorized: false,
 }
 
-const app = express();
-app.use(bodyParser.json());
-app.connect('*', proxy.connect);
-app.all('*', proxy.pass);
+// const app = express();
+// app.use(bodyParser.json());
+// app.connect('*', proxy.connect);
+// app.all('*', proxy.pass);
 
 const appInsequre = express();
 // appInsequre.all('*', (req, res) => {
 //   res.redirect(`https://${req.headers.host}${req.originalUrl}`);
 // });
+appInsequre.use(bodyParser.json());
 appInsequre.all('*', proxy.pass);
 
 mongoose.connect(config.dbURL, config.dbOptions);
@@ -34,8 +35,8 @@ mongoose.connection
       console.log('HTTP server start ...');
     });
 
-    https.createServer(options, app).listen(config.portHttps, () => {
-      console.log('HTTPS server start ...');
-    });
+    // https.createServer(options, app).listen(config.portHttps, () => {
+    //   console.log('HTTPS server start ...');
+    // });
 
   }).on('error', error => console.warn(error));
