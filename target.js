@@ -1,22 +1,20 @@
 const express = require("express");
+const bodyParser = require("body-parser");
 
 const app = express();
+app.use(bodyParser.json());
 
-function getData(req) {
-    const { url, cookies, ip, method, params, path, query, body } = req;
+function extract(req) {
+    const { url, cookies, ip, method, params, path, query, body, headers } = req;
 
-    return { url, cookies, ip, method, params, path, query, body };
-}
-
-const logger = function(data) {
-    console.log(data);
+    return { url, cookies, ip, method, params, path, query, body, headers };
 }
 
 app.all('*', function (req, res) {
-    const body = getData(req);
-    logger(body);
+    const body = extract(req);
+    console.log(body);
 
-    res.send({data: 'Privet'});
+    res.send({data: 'Privet from Target'});
 });
 
 app.listen(3001, function () {

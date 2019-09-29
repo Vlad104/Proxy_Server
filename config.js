@@ -1,5 +1,5 @@
 module.exports = {
-  port: 443,
+  port: 80,
   dbURL: 'mongodb://localhost:27017',
   dbOptions: {
     useUnifiedTopology: true
