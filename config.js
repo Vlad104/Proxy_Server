@@ -6,7 +6,8 @@ module.exports = {
     useUnifiedTopology: true
   },
   ssl: {
-      keyPath: './ssl/rootCA.key',
-      certPath: './ssl/rootCA.crt',
+      keyPath: './ssl/privkey.pem',
+      caPath: './ssl/CAroot-cert.pem',
+      certPath: './ssl/fullchain.pem',
   }
 };

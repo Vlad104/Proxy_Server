@@ -9,15 +9,17 @@ const https = require('https');
 
 const options = {
   key: fs.readFileSync(config.ssl.keyPath),
+  ca: fs.readFileSync(config.ssl.caPath),
   cert: fs.readFileSync(config.ssl.certPath),
-  requestCert: false,
   rejectUnauthorized: false,
+  requestCert: true,
+  agent: false
 }
 
-// const app = express();
-// app.use(bodyParser.json());
-// app.connect('*', proxy.connect);
-// app.all('*', proxy.pass);
+const app = express();
+app.use(bodyParser.json());
+app.connect('*', proxy.connect);
+app.all('*', proxy.pass);
 
 const appInsequre = express();
 // appInsequre.all('*', (req, res) => {
@@ -35,8 +37,8 @@ mongoose.connection
       console.log('HTTP server start ...');
     });
 
-    // https.createServer(options, app).listen(config.portHttps, () => {
-    //   console.log('HTTPS server start ...');
-    // });
+    https.createServer(options, app).listen(config.portHttps, () => {
+      console.log('HTTPS server start ...');
+    });
 
   }).on('error', error => console.warn(error));
