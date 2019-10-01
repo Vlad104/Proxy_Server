@@ -3,31 +3,31 @@ const mongoose = require('mongoose');
 const bodyParser = require("body-parser");
 const proxy = require('./proxy');
 const config = require("./config");
-const fs = require('fs');
 const http = require('http');
 const https = require('https');
 
+const pem = proxy.createCert('localhost');
+
 const options = {
-  key: fs.readFileSync(config.ssl.keyPath),
-  ca: fs.readFileSync(config.ssl.caPath),
-  cert: fs.readFileSync(config.ssl.certPath),
+  key: pem.private,
+  ca: pem.public,
+  cert: pem.cert,
   rejectUnauthorized: false,
   requestCert: true,
   agent: false
 }
 
+// https server
 const app = express();
 app.use(bodyParser.json());
-app.connect('*', proxy.connect);
 app.all('*', proxy.pass);
 
+// http server
 const appInsequre = express();
-// appInsequre.all('*', (req, res) => {
-//   res.redirect(`https://${req.headers.host}${req.originalUrl}`);
-// });
 appInsequre.use(bodyParser.json());
 appInsequre.all('*', proxy.pass);
 
+// Connect to MongoDB for requests storing
 mongoose.connect(config.dbURL, config.dbOptions);
 mongoose.connection
   .once('open', () => {
