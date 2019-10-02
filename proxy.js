@@ -45,12 +45,11 @@ const pass = function(req, res) {
     }
 
     // if request to localhost (proxy) then return only 200
-    // but if you need to repeat same precious request
+    // but if you need to repeat same previous request
     // you may get list of all requests by localhost?id=all
     // and then repeat current request with localhost?id={id}
     if (req.headers.host === 'localhost') {
         if (req.query.id) {
-            // ?id=all return all storing requests id
             proxyResend(req, res);
             return;
         }
@@ -84,8 +83,8 @@ function sendToTarget(req, res, target) {
                 return request.post(options, req.body);
             } else if (req.method === 'PUT') {
                 return request.put(options, req.body);
-            } else if (req.method === 'PATH') {
-                return request.path(options, req.body);
+            } else if (req.method === 'PATCH') {
+                return request.patch(options, req.body);
             }
         })(req, options)
         .on('error', (error) => res.status(502).send(error.message))
