@@ -2,9 +2,10 @@ const express = require("express");
 const mongoose = require('mongoose');
 const bodyParser = require("body-parser");
 const proxy = require('./proxy');
-const config = require("./config");
 const http = require('http');
 const https = require('https');
+const tls = require('tls');
+const config = require("./config");
 
 const pem = proxy.createCert('localhost');
 
@@ -14,7 +15,11 @@ const options = {
   cert: pem.cert,
   rejectUnauthorized: false,
   requestCert: true,
-  agent: false
+  SNICallback: (name, callback) => {
+    const pem = proxy.createCert(name);
+    const ctx = tls.createSecureContext({key: pem.private, cert: pem.cert});
+    callback(null, ctx);
+  }
 }
 
 // https server
@@ -23,9 +28,9 @@ app.use(bodyParser.json());
 app.all('*', proxy.pass);
 
 // http server
-const appInsequre = express();
-appInsequre.use(bodyParser.json());
-appInsequre.all('*', proxy.pass);
+const appInsecure = express();
+appInsecure.use(bodyParser.json());
+appInsecure.all('*', proxy.pass);
 
 // Connect to MongoDB for requests storing
 mongoose.connect(config.dbURL, config.dbOptions);
@@ -33,7 +38,7 @@ mongoose.connection
   .once('open', () => {
     console.log('Mongo DB connected');
 
-    http.createServer(appInsequre).listen(config.portHttp, () => {
+    http.createServer(appInsecure).listen(config.portHttp, () => {
       console.log('HTTP server start ...');
     });
 

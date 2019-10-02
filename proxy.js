@@ -5,6 +5,10 @@ var selfsigned = require('selfsigned');
 const certCache = {};
 
 const createCert = function(name) {
+    if (certCache[name]) {
+        return certCache[name];
+    }
+
     const attrs = [{ name: 'commonName', value: name}];
     const pem = selfsigned.generate(attrs, {
       keySize: 2048,
@@ -40,11 +44,8 @@ function extract(req) {
 }
 
 const pass = function(req, res) {
-    if (req.method === 'CONNECT' && !certCache[req.headers.host]) {
-        createCert(req.headers.host);
-    }
 
-    // if request to localhost (proxy) then return only 200
+    // if request's target is localhost (proxy) then return only: 200
     // but if you need to repeat same previous request
     // you may get list of all requests by localhost?id=all
     // and then repeat current request with localhost?id={id}
@@ -69,10 +70,6 @@ function sendToTarget(req, res, target) {
         const options = {
             url: target,
             headers: req.headers,
-            agentOptions: req.method === 'HTTPS' ? {
-                key: certCache[req.headers.host] ? certCache[req.headers.host].private : createCert(req.headers.host).private ,
-                ca: certCache[req.headers.host] ? certCache[req.headers.host].public : createCert(req.headers.host).public,
-            } : null,
         };
     
         // req.pipe(request(options))
@@ -107,17 +104,19 @@ function proxyResend(req, res) {
     resend(req.query.id, req, res, target);
 }
 
+// send list of stored requests
 function sendList(res) {
     ReqHistory.find({}, '_id request', (err, requests) => {
         if (err) {
           res.sendStatus(500);
         } else {
-          const result = requests.map((req) => req._id);
+          const result = requests.map((req) => [req._id, `${req.request.protocol}://${req.request.headers.host}${req.request.path}`]);
           res.send({ result });
         }
     }).sort({_id: -1});
 }
 
+// send request from store
 function resend(id, req, res, target) {
     ReqHistory.findById(id, (err, request) => {
         if (err) {

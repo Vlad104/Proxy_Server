@@ -5,9 +5,4 @@ module.exports = {
   dbOptions: {
     useUnifiedTopology: true
   },
-  ssl: {
-      keyPath: './ssl/privkey.pem',
-      caPath: './ssl/CAroot-cert.pem',
-      certPath: './ssl/fullchain.pem',
-  }
 };
